@@ -1,4 +1,4 @@
 
 public enum Transportation {
-	CAR, FOOT, BIKE, ÖPNV
+	CAR, FOOT, BIKE, PUBLICTRANSPORT
 }
