@@ -5,8 +5,13 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
+import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
+
 import org.json.simple.*;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -18,8 +23,7 @@ import org.json.simple.parser.ParseException;
  */
 public class HueBridgeConnection {
 
-	private static final String IP = "10.28.9.123";
-	private static final String USERNAME = "2b2d3ff23d63751f10c1d8c0332d50ff";
+	//private static final int PORT = 80;
 	
 	// https://developers.meethue.com/documentation/getting-started
 	// http://10.28.9.120/api/197ea42c25303cef1a68c4042ed56887/lights/1
@@ -27,14 +31,16 @@ public class HueBridgeConnection {
 	
 	private final String ip;
 	private final String username;
+	//private final Socket socket;
 	
-	public HueBridgeConnection() {
+	/*public HueBridgeConnection() throws IOException {
 		this(IP, USERNAME);
-	}
+	}*/
 	
-	public HueBridgeConnection(String ip, String username) {
+	public HueBridgeConnection(String ip, String username) throws IOException {
 		this.ip = ip;
 		this.username = username;
+		//socket = new Socket(ip, PORT);
 	}
 	
 	/**
@@ -42,12 +48,12 @@ public class HueBridgeConnection {
 	 * @param light Number of the light to be powered off.
 	 * @throws HueBridgeException Thrown if the command could not be executed correctly.
 	 */
-	public void powerOff(int light) throws HueBridgeException {
+	public void powerOff(int light) throws IOException {
 		if (light <= 0 || light > 3)
 			throw new IllegalArgumentException("The number of the light must between 1 and 3.");
 		JSONObject json = new JSONObject();
 		json.put("on", false);
-		sendData(light, json);
+		sendJSON(light, json);
 	}
 	
 	/**
@@ -56,28 +62,45 @@ public class HueBridgeConnection {
 	 * @param color of the light
 	 * @throws HueBridgeException Thrown if the command could not be executed correctly.
 	 */
-	public void powerOn(int light, Color color) throws HueBridgeException {
+	public void powerOn(int light, Color color) throws IOException {
 		if (light <= 0 || light > 3)
 			throw new IllegalArgumentException("The number of the light must between 1 and 3.");
 		float[] hsv = new float[3];
 		Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsv);
 
 		JSONObject json = new JSONObject();
+		json.put("on", true);
+		sendJSON(light, json);
+		json = new JSONObject();
 		json.put("hue", (int) (hsv[0] * (Short.MAX_VALUE * 2 + 1)));
 		json.put("sat", (int) (hsv[1] * (Byte.MAX_VALUE * 2)));
 		json.put("bri", (int) (hsv[2] * (Byte.MAX_VALUE * 2)));
-		json.put("on", true);
-		sendData(light, json);
+		sendJSON(light, json);
 	}
+	
+	/*private void sendJSON(int light, JSONObject json) throws IOException {
+		HTTPRequest request = new HTTPRequest("PUT", "/api/" + username + "/lights/" + light + "/state");
+		request.addHeaderFild("Host", ip);
+		request.addHeaderFild("Connection", "keepalive");
+		request.e
+		
+		//try
+		{
+			PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			writer.print(request.getRequest());
+			writer.flush();
+		}
+		
+	}*/
 
 	/**
 	 * Sends the JSON to the HueBridge to execute the commands.
 	 * @param light Number of the light to be changed.
 	 * @param json JSON-Object which contains the attributes to be changed.
-	 * @throws HueBridgeException Thrown if the command could not be executed correctly.
+	 * @throws IOException Thrown if the command could not be executed correctly.
 	 */
-	private void sendData(int light, JSONObject json) throws HueBridgeException {
-			
+	private void sendJSON(int light, JSONObject json) throws IOException {
 		HttpURLConnection connection = null;
         DataOutputStream writer = null;
         BufferedReader reader = null;
@@ -98,25 +121,25 @@ public class HueBridgeConnection {
             while ((line = reader.readLine()) != null)
                 response.append(line + System.lineSeparator());
             
-			JSONArray jsonResult = (JSONArray)new JSONParser().parse(response.toString());
-			if (!((JSONObject)jsonResult.get(0)).containsKey("success")) {
-				throw new HueBridgeException("The command could not be executed at the Hue Bridge.");
-			}
+			//JSONArray jsonResult = (JSONArray)new JSONParser().parse(response.toString());
+			//if (!((JSONObject)jsonResult.get(0)).containsKey("success"))
+			if (response.toString().contains("error"))	
+				throw new IOException("The command could not be executed at the Hue Bridge! " + response.toString());
+			
         }
-        catch (ParseException | IOException e) {
-			throw new HueBridgeException(e.getMessage());
-		}
         finally {
-        	try {
-	            if (connection != null)
-	                connection.disconnect();
-	            if (writer != null)
-	                writer.close();
-	            if (reader != null)
-	                reader.close();
-        	}
-        	catch (IOException e) {}
+        	if (connection != null)
+        		connection.disconnect();
+	        if (writer != null)
+	        	writer.close();
+	        if (reader != null)
+	            reader.close();
         }
 	}
+
+	/*@Override
+	public void close() throws IOException {
+		socket.close();
+	}*/
 	
 }
