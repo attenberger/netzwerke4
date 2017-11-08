@@ -7,7 +7,7 @@ import edu.hm.cs.breakfasttothelimit.Transportation;
 
 public class Google {
 	
-	public Google(String address, Transportation transportation) {}
+	public Google(String placeOfResidence, String placeOfWork, Transportation transportation) {}
 	
 	public Duration getTime() {
 		return Duration.ofMinutes(3);
