@@ -34,9 +34,9 @@ public class BreakfastToTheLimit {
 		try {
 			huebridge = new HueBridgeConnection(IP, USERNAME);
 			//persons = requestDataForPersons();
-			persons[0] = new Person("Heinz", 1, PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", LocalTime.of(17, 37), Transportation.BIKE, huebridge);
-			persons[1] = new Person("Wolfgang", 2, PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", LocalTime.of(17, 38), Transportation.FOOT, huebridge);
-			persons[2] = new Person("Andrea", 3, PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", LocalTime.of(17, 37), Transportation.CAR, huebridge);
+			persons[0] = new Person("Heinz", 1, PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", LocalTime.of(15, 59), Transportation.BIKE, huebridge);
+			persons[1] = new Person("Wolfgang", 2, PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", LocalTime.of(16, 00), Transportation.FOOT, huebridge);
+			persons[2] = new Person("Andrea", 3, PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", LocalTime.of(16, 20), Transportation.CAR, huebridge);
 			
 			System.out.println("==================================");
 			System.out.println("Enter number for persons (the light) who started off.");
@@ -164,9 +164,6 @@ public class BreakfastToTheLimit {
 					checkTime.interrupt();
 				}
 			}
-			
-			// Make sure that also the thread to check the time will be killed to close the program
-			checkTime.interrupt();
 		}
 	};
 
@@ -221,9 +218,6 @@ public class BreakfastToTheLimit {
 				this.interrupt();
 				checkInput.interrupt();
 			}
-			
-			// Make sure that also the thread to read the input will be killed to close the program
-			checkInput.interrupt();
 		}
 		
 	};

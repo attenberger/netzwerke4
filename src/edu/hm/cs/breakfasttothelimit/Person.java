@@ -24,6 +24,7 @@ public class Person {
 	private HueBridgeConnection hueBridge;
 	private boolean startedOff = false;
 	private Color currentLightColor = null;
+	private Thread currentWarning = null; // Warning that runs at the moment
 
 	/*
 	COMMUTE INFO
@@ -119,15 +120,15 @@ public class Person {
 			return true;
 		long timeleft = timeLeft();
 		if (timeleft > 120) {
-			if(!warning.isAlive())
+			if(currentWarning == null)
 				lightOn(Color.WHITE);
 			return true;
 		} else if (timeleft > 60) {
-			if(!warning.isAlive())
+			if(currentWarning == null)
 				lightOn(Color.ORANGE);
 			return true;
 		} else if (timeleft > 0) {
-			if(!warning.isAlive())
+			if(currentWarning == null)
 				lightOn(Color.RED);
 			return true;
 		} else
@@ -157,8 +158,10 @@ public class Person {
 	 * Starts the warning system. The warning system should be started if anyone is to late.
 	 */
 	public void startWarning() {
-		if (!warning.isAlive())
-			warning.start();
+		if (currentWarning == null) {
+			currentWarning = new Thread(warn);
+			currentWarning.start();
+		}
 	}
 
 	/**
@@ -166,11 +169,13 @@ public class Person {
 	 * @throws HueBridgeException Thrown if an error occurs in the connection to the light system
 	 */
 	public void stopWarning() throws HueBridgeException {
-		if (!warning.isInterrupted())
-			warning.interrupt();
-		try {
-			warning.join();
-		} catch (InterruptedException e) {}
+		if (currentWarning != null && !currentWarning.isInterrupted()) {
+			currentWarning.interrupt();
+			try {
+				currentWarning.join();
+			} catch (InterruptedException e) {}
+			currentWarning = null;
+		}
 		if (startedOff)
 			lightOff();
 		else
@@ -181,9 +186,9 @@ public class Person {
 	 * Warning system if anyone is to late. The lights will blink red.
 	 * The light of persons who are late blink dark red.
 	 */
-	Thread warning = new Thread(){
+	Runnable warn = new Runnable(){
 		public void run(){
-			while(!Thread.interrupted()) {
+			while(!Thread.currentThread().isInterrupted()) {
 				try {
 					if (timeLeft() > 0)
 						lightOn(Color.RED);
@@ -195,9 +200,8 @@ public class Person {
 				} catch (HueBridgeException e) {
 					System.out.println(e.getMessage());
 				} catch (InterruptedException e) {
-					this.interrupt();
+					Thread.currentThread().interrupt();
 				}
-
 			}
 		}
 	};
