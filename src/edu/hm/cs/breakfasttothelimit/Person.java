@@ -1,9 +1,14 @@
 package edu.hm.cs.breakfasttothelimit;
 
 import java.awt.Color;
+import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalTime;
+import java.util.Optional;
 
-import edu.hm.cs.breakfasttothelimit.google.Google;
+import edu.hm.cs.breakfasttothelimit.google.GoogleDistanceMatrixResponse;
+import edu.hm.cs.breakfasttothelimit.google.GoogleDistanceService;
+import edu.hm.cs.breakfasttothelimit.google.exception.DistanceServiceException;
 import edu.hm.cs.breakfasttothelimit.huebridge.HueBridgeConnection;
 import edu.hm.cs.breakfasttothelimit.huebridge.HueBridgeException;
 
@@ -12,15 +17,21 @@ import edu.hm.cs.breakfasttothelimit.huebridge.HueBridgeException;
  * @author Attenberger
  */
 public class Person {
-	
+
 	private String name;
 	private int lightnumber;
 	private LocalTime timeClockIn;
-	private Google route;
 	private HueBridgeConnection hueBridge;
 	private boolean startedOff = false;
 	private Color currentLightColor = null;
-	
+
+	/*
+	COMMUTE INFO
+	 */
+	private final String placeOfResidence;
+	private final String placeOfWork;
+	private final Transportation transportation;
+
 	/**
 	 * Creats a new Person
 	 * @param name of the person
@@ -37,9 +48,12 @@ public class Person {
 		this.lightnumber = lightnumber;
 		this.timeClockIn = timeClockIn;
 		this.hueBridge = hueBridge;
-		route = new Google(placeOfResidence, placeOfWork, transportation);
+
+		this.placeOfResidence = placeOfResidence;
+		this.placeOfWork = placeOfWork;
+		this.transportation = transportation;
 	}
-	
+
 	/**
 	 * Returns the name of the person.
 	 * @return name of the person
@@ -47,7 +61,7 @@ public class Person {
 	public String getName() {
 		return name;
 	}
-	
+
 	/**
 	 * Returns the number of the light of the person.
 	 * @return number of the light of the person
@@ -55,7 +69,7 @@ public class Person {
 	public int getLightNumber() {
 		return lightnumber;
 	}
-	
+
 	/**
 	 * Marks a person started off. The light will be turned off.
 	 * @throws HueBridgeException Thrown if an error occurs in the connection to the light system
@@ -64,7 +78,7 @@ public class Person {
 		startedOff = true;
 		lightOff();
 	}
-	
+
 	/**
 	 * Returns if the person already started off
 	 * @return if the person already started off
@@ -72,7 +86,7 @@ public class Person {
 	public boolean hasStartedOff() {
 		return startedOff;
 	}
-	
+
 	/**
 	 * Powers the light of the person in a specific color on.
 	 * @param color of the light
@@ -84,7 +98,7 @@ public class Person {
 			this.currentLightColor = color;
 		}
 	}
-	
+
 	/**
 	 * Powers the light of the person off.
 	 * @throws HueBridgeException Thrown if an error occurs in the connection to the light system
@@ -93,7 +107,7 @@ public class Person {
 		hueBridge.powerOff(lightnumber);
 		this.currentLightColor = null;
 	}
-	
+
 	/**
 	 * Checks time of the person and signs it by light.
 	 * A person already started of will not be checked again.
@@ -116,21 +130,29 @@ public class Person {
 			if(!warning.isAlive())
 				lightOn(Color.RED);
 			return true;
-		} else 
+		} else
 			return false;
 	}
-	
+
 	/**
-	 * Checks the time the person has time to start off latest. 
+	 * Checks the time the person has time to start off latest.
 	 * @return number of seconds the person has left. For a started off person the max long value.
 	 */
 	private long timeLeft() {
 		if (startedOff)
 			return Long.MAX_VALUE;
-		else
-			return timeClockIn.toSecondOfDay() - LocalTime.now().toSecondOfDay() - route.getTime().getSeconds();
+		else {
+			try {
+				long duration = GoogleDistanceService.fetch(placeOfResidence, placeOfWork, transportation).getDuration();
+				return timeClockIn.toSecondOfDay() - LocalTime.now().toSecondOfDay() - duration;
+			} catch (DistanceServiceException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return -1;
 	}
-	
+
 	/**
 	 * Starts the warning system. The warning system should be started if anyone is to late.
 	 */
@@ -138,7 +160,7 @@ public class Person {
 		if (!warning.isAlive())
 			warning.start();
 	}
-	
+
 	/**
 	 * Stops the warning system. The time for this person is checked and the light will light suitable.
 	 * @throws HueBridgeException Thrown if an error occurs in the connection to the light system
@@ -154,7 +176,7 @@ public class Person {
 		else
 			checkTime();
 	}
-	
+
 	/**
 	 * Warning system if anyone is to late. The lights will blink red.
 	 * The light of persons who are late blink dark red.
@@ -175,7 +197,7 @@ public class Person {
 				} catch (InterruptedException e) {
 					this.interrupt();
 				}
-				
+
 			}
 		}
 	};
