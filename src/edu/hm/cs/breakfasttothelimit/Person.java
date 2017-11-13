@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Optional;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 import edu.hm.cs.breakfasttothelimit.google.GoogleDistanceMatrixResponse;
 import edu.hm.cs.breakfasttothelimit.google.GoogleDistanceService;
@@ -17,7 +19,6 @@ import edu.hm.cs.breakfasttothelimit.huebridge.HueBridgeException;
  * @author Attenberger
  */
 public class Person {
-
 	private String name;
 	private int lightnumber;
 	private LocalTime timeClockIn;
@@ -193,7 +194,7 @@ public class Person {
 					if (timeLeft() > 0)
 						lightOn(Color.RED);
 					else
-						lightOn(new Color(150,0,0));
+						lightOn(new Color(50,0,0));
 					Thread.sleep(1000);
 					lightOff();
 					Thread.sleep(1000);

@@ -18,7 +18,10 @@ public class Test {
 		c.powerOn(3, Color.BLUE);
 		*/
 
-		System.out.println(GoogleDistanceService.fetch("Weststraße 25, 84416 Moosen", "Lothstraße 64, München", Transportation.CAR));
+		String from = "80335 München, Lothstr. 64";
+		System.out.println(GoogleDistanceService.fetch(from, "Agnes-Pockels-Bogen 21, München", Transportation.BIKE));
+		System.out.println(GoogleDistanceService.fetch(from, "Mühldorf Str. 15, München", Transportation.PUBLICTRANSPORT));
+		System.out.println(GoogleDistanceService.fetch(from, "Boltzmannstraße 1, 85748 Garching bei München", Transportation.CAR));
 	}
 
 }

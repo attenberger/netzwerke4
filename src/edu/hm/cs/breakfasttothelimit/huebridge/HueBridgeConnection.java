@@ -11,9 +11,6 @@ import java.net.URL;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-//import org.json.simple.*;
-//import org.json.simple.parser.JSONParser;
-//import org.json.simple.parser.ParseException;
 
 /**
  * Connection to the Hue Bridge light system.
@@ -107,11 +104,6 @@ public class HueBridgeConnection {
             	if (jsonResult.getJSONObject(i).keySet().contains("error"))
             		throw new HueBridgeException(jsonResult.toString());
             }
-            
-			//JSONArray jsonResult = (JSONArray)new JSONParser().parse(response.toString());
-			//if (!((JSONObject)jsonResult.get(0)).containsKey("success"))
-			//if (response.toString().contains("error"))	
-			//	throw new IOException("The command could not be executed at the Hue Bridge! " + response.toString());
 			
         }
         catch (IOException e) {

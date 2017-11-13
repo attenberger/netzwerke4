@@ -1,5 +1,8 @@
 package edu.hm.cs.breakfasttothelimit.google.exception;
 
+/**
+ * @author Benjamin Eder
+ */
 public class DistanceServiceException extends Exception {
 
 	public DistanceServiceException() {

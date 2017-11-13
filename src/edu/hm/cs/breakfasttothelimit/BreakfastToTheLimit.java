@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.DateTimeException;
 import java.time.LocalTime;
+import java.util.Calendar;
+
+import edu.hm.cs.breakfasttothelimit.google.GoogleDistanceService;
+import edu.hm.cs.breakfasttothelimit.google.exception.DistanceServiceException;
 import edu.hm.cs.breakfasttothelimit.huebridge.HueBridgeConnection;
 import edu.hm.cs.breakfasttothelimit.huebridge.HueBridgeException;
 
@@ -15,10 +19,10 @@ import edu.hm.cs.breakfasttothelimit.huebridge.HueBridgeException;
  */
 public class BreakfastToTheLimit {
 	
-	//private static final String IP = "10.28.9.123";
-	//private static final String USERNAME = "2b2d3ff23d63751f10c1d8c0332d50ff";
-	private static final String IP = "localhost";
-	private static final String USERNAME = "newdeveloper";
+	private static final String IP = "10.28.9.123";
+	private static final String USERNAME = "2b2d3ff23d63751f10c1d8c0332d50ff";
+	//private static final String IP = "localhost";
+	//private static final String USERNAME = "newdeveloper";
 	private static final int NUMBEROFPERSONS = 3;
 	private static final String PLACEOFRESIDENCE = "80335 München, Lothstr. 64";
 	
@@ -29,15 +33,17 @@ public class BreakfastToTheLimit {
 	 * Start method of the program. Asks for the data for the three persons and initiates that the time when they have to leave is monitored.
 	 * It also initiates the monitoring which person started off.
 	 * @param args
+	 * @throws DistanceServiceException 
 	 */
 	public static void main(String[] args) {
 		try {
 			huebridge = new HueBridgeConnection(IP, USERNAME);
-			//persons = requestDataForPersons();
-			persons[0] = new Person("Heinz", 1, PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", LocalTime.of(15, 59), Transportation.BIKE, huebridge);
-			persons[1] = new Person("Wolfgang", 2, PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", LocalTime.of(16, 00), Transportation.FOOT, huebridge);
-			persons[2] = new Person("Andrea", 3, PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", LocalTime.of(16, 20), Transportation.CAR, huebridge);
+			persons = requestDataForPersons();
 			
+			/*persons[0] = new Person("Heinz", 1, PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", Transportation.BIKE).getDuration() + 140), Transportation.BIKE, huebridge);
+			persons[1] = new Person("Wolfgang", 2, PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", Transportation.FOOT).getDuration() + 150), Transportation.FOOT, huebridge);
+			persons[2] = new Person("Andrea", 3, PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", Transportation.CAR).getDuration() + 160), Transportation.CAR, huebridge);
+			*/
 			System.out.println("==================================");
 			System.out.println("Enter number for persons (the light) who started off.");
 			for (Person person : persons) {
@@ -47,9 +53,9 @@ public class BreakfastToTheLimit {
 			checkTime.start();
 		} catch (HueBridgeException e) {
 			System.out.println("An error ocoured in the connection to the HUE-Bridge!\r\n" + e.getMessage());
-		} //catch (IOException e) {
-			//System.out.println(e.getMessage());
-		//}
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
 		
 	}
 	
@@ -68,13 +74,13 @@ public class BreakfastToTheLimit {
 			System.out.println("Please enter data for person " + personnr + ":");
 			System.out.println("Name der Person: ");
 			String name = reader.readLine();
-			System.out.print("Address of work: ");
+			System.out.println("Address of work: ");
 			String address = reader.readLine();
 			
 			// Ask for clock-in-time until the user entered a valid input
 			LocalTime time = null;
 			do {
-				System.out.print("Begin of work (HH:MM): ");
+				System.out.println("Begin of work (HH:MM): ");
 				String[] timeParts = reader.readLine().split(":");
 				if (timeParts.length == 2) {
 					try {
@@ -89,7 +95,7 @@ public class BreakfastToTheLimit {
 			} while (time == null);
 			
 			// Aks for used transportation until the user entered a valid input
-			System.out.print("Used transport ([C]ar, [F]oot, [B]ike, [P]ublic transport): ");
+			System.out.println("Used transport ([C]ar, [F]oot, [B]ike, [P]ublic transport): ");
 			Transportation transport = null;
 			do {
 				switch(reader.readLine()) {

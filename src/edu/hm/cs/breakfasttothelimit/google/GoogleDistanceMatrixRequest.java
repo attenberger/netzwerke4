@@ -2,17 +2,17 @@ package edu.hm.cs.breakfasttothelimit.google;
 
 import edu.hm.cs.breakfasttothelimit.Transportation;
 import edu.hm.cs.breakfasttothelimit.google.exception.RequestURLException;
-import sun.misc.Request;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 /**
  * Request class for the google distance matrix.
+ * 
+ * @author Benjamin Eder
  */
 public class GoogleDistanceMatrixRequest {
 

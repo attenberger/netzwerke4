@@ -2,6 +2,9 @@ package edu.hm.cs.breakfasttothelimit.google;
 
 import org.json.JSONObject;
 
+/**
+ * @author Benjamin Eder
+ */
 public class GoogleDistanceMatrixResponse {
 
 	/**

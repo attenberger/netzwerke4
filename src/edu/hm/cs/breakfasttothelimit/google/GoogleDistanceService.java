@@ -13,6 +13,8 @@ import org.json.JSONObject;
 
 /**
  * Google Distance Service used to calculate the time one needs to get from A to B.
+ * 
+ * @author Benjamin Eder
  */
 public class GoogleDistanceService {
 
