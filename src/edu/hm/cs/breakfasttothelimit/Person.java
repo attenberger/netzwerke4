@@ -43,9 +43,8 @@ public class Person {
 	 * @param timeClockIn Time at which the person wants to start to work
 	 * @param transportation the person uses to get to work
 	 * @param hueBridge Connection to the light system
-	 * @throws HueBridgeException Thrown if an error ocurrs in the connection to the light system
 	 */
-	public Person(String name, int lightnumber, String placeOfResidence, String placeOfWork, LocalTime timeClockIn, Transportation transportation, HueBridgeConnection hueBridge) throws HueBridgeException {
+	public Person(String name, int lightnumber, String placeOfResidence, String placeOfWork, LocalTime timeClockIn, Transportation transportation, HueBridgeConnection hueBridge) {
 		this.name = name;
 		this.lightnumber = lightnumber;
 		this.timeClockIn = timeClockIn;
@@ -199,7 +198,7 @@ public class Person {
 					lightOff();
 					Thread.sleep(1000);
 				} catch (HueBridgeException e) {
-					System.out.println(e.getMessage());
+					System.out.println(e.getMessage() + "\r\nPlease close the application!");
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}

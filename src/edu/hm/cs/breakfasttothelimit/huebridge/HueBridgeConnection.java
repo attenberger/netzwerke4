@@ -7,16 +7,20 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 
 /**
  * Connection to the Hue Bridge light system.
  * @author Attenberger
  */
 public class HueBridgeConnection {	
+	
+	private static final int TIMEOUT = 1000;
 	
 	private final String ip;
 	private final String username;
@@ -37,9 +41,6 @@ public class HueBridgeConnection {
 	 * @throws HueBridgeException Thrown if the command could not be executed correctly.
 	 */
 	public void powerOff(int light) throws HueBridgeException {
-		if (light <= 0 || light > 3)
-			throw new IllegalArgumentException("The number of the light must between 1 and 3.");
-		
 		JSONObject json = new JSONObject();
 		json.put("on", false);
 		sendJSON(light, json);
@@ -52,8 +53,6 @@ public class HueBridgeConnection {
 	 * @throws HueBridgeException Thrown if the command could not be executed correctly.
 	 */
 	public void powerOn(int light, Color color) throws HueBridgeException {
-		if (light <= 0 || light > 3)
-			throw new IllegalArgumentException("The number of the light must between 1 and 3.");
 		
 		// Convert color from RGB-Values to HSB-Values, because the light system uses HSB-Values
 		float[] hsv = new float[3];
@@ -85,6 +84,7 @@ public class HueBridgeConnection {
         try {
             URL url = new URL("http://" + ip + "/api/" + username + "/lights/" + light + "/state");
             connection = (HttpURLConnection)url.openConnection();
+            connection.setConnectTimeout(TIMEOUT);
 			connection.setRequestMethod("PUT");
 			connection.setDoOutput(true);
 			connection.setRequestProperty("Content-Length", Integer.toString(json.toString().getBytes().length));
@@ -92,22 +92,44 @@ public class HueBridgeConnection {
             writer = new DataOutputStream(connection.getOutputStream());
             writer.writeBytes(json.toString());
             
+            // Check response code
+            switch (connection.getResponseCode()) {
+	            case 400: throw new HueBridgeException("An error occured in the communication with HUE-Bridge. Please contact the developer of the application!");
+	            case 401: throw new HueBridgeException("The application is not allowed to access to the HUE-Bridge. Please make sure that username of the HUE-Bridge is " +
+	            		username + ".");
+	            case 404: throw new HueBridgeException("The application could not change the state of a lamp because the lamp can not be found. Please check the configuration if the correct device is called, otherwise contact the devolper!");
+	            default:
+	            	if (connection.getResponseCode() < 200 || connection.getResponseCode() > 299) {
+	            		throw new HueBridgeException("An unexpected error occured in the communication with HUE-Bridge.\r\n" +
+	            			"Return Code: " + connection.getResponseCode() + " Message: " + connection.getResponseMessage() + "\r\n" +
+	            			"There might be something wrong with your HUE-Bridge!");
+	            	}
+            }
+            
             // Check JSON result if an error occurred
+            connection.setReadTimeout(TIMEOUT);
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             StringBuilder response = new StringBuilder();
             String line;
-            while ((line = reader.readLine()) != null)
+            while ((line = reader.readLine()) != null) {
                 response.append(line + System.lineSeparator());
+            }
             
             JSONArray jsonResult = new JSONArray(response.toString());
             for (int i = 0; i < jsonResult.length(); i++) {
             	if (jsonResult.getJSONObject(i).keySet().contains("error"))
-            		throw new HueBridgeException(jsonResult.toString());
+            		throw new HueBridgeException("An error occured in the communication with the HUE-Bridge: " +
+            				jsonResult.getJSONObject(i).getJSONObject("error").getString("description") +
+            				"\r\nPlease contact the software developer!");
             }
 			
         }
+        catch (SocketTimeoutException e) {
+        	throw new HueBridgeException("The application is unable to connect or communicate with the Hue-Bridge: " + e.getMessage() +
+        			"\r\nPlease check the configuration and connection.");
+        }
         catch (IOException e) {
-        	throw new HueBridgeException(e.getMessage());
+        	throw new HueBridgeException("An error occured in the connection to Hue-Bridge: " + e.getMessage() + "\r\nPlease check your the connection!");
         }
         finally {
         	try {
@@ -119,7 +141,7 @@ public class HueBridgeConnection {
 		            reader.close();
         	}
         	catch (IOException e) {
-            	throw new HueBridgeException(e.getMessage());
+            	// No useful exception handling possible
             }
         }
 	}

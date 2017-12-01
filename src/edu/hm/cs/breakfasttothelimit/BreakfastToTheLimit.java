@@ -19,11 +19,11 @@ import edu.hm.cs.breakfasttothelimit.huebridge.HueBridgeException;
  */
 public class BreakfastToTheLimit {
 	
-	private static final String IP = "10.28.9.123";
-	private static final String USERNAME = "2b2d3ff23d63751f10c1d8c0332d50ff";
-	//private static final String IP = "localhost";
-	//private static final String USERNAME = "newdeveloper";
-	private static final int NUMBEROFPERSONS = 3;
+//	private static final String IP = "10.28.9.123";
+//	private static final String USERNAME = "2b2d3ff23d63751f10c1d8c0332d50ff";
+	private static final String IP = "localhost";
+	private static final String USERNAME = "newdeveloper";
+	public static final int NUMBEROFPERSONS = 3;
 	private static final String PLACEOFRESIDENCE = "80335 München, Lothstr. 64";
 	
 	private static HueBridgeConnection huebridge;
@@ -36,26 +36,31 @@ public class BreakfastToTheLimit {
 	 * @throws DistanceServiceException 
 	 */
 	public static void main(String[] args) {
-		try {
-			huebridge = new HueBridgeConnection(IP, USERNAME);
+		huebridge = new HueBridgeConnection(IP, USERNAME);
+/*		try {
 			persons = requestDataForPersons();
-			
-			/*persons[0] = new Person("Heinz", 1, PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", Transportation.BIKE).getDuration() + 140), Transportation.BIKE, huebridge);
+		} catch (IOException e) {
+			System.out.println("An error occured while reading from commandline!");
+			System.out.println(e.getMessage());
+			System.out.println("The application will be closed");
+			return;
+		}
+	*/	
+		try {
+			persons[0] = new Person("Heinz", 1, PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Marienplatz 8, 80331 München", Transportation.BIKE).getDuration() + 140), Transportation.BIKE, huebridge);
 			persons[1] = new Person("Wolfgang", 2, PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", Transportation.FOOT).getDuration() + 150), Transportation.FOOT, huebridge);
 			persons[2] = new Person("Andrea", 3, PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", Transportation.CAR).getDuration() + 160), Transportation.CAR, huebridge);
-			*/
-			System.out.println("==================================");
-			System.out.println("Enter number for persons (the light) who started off.");
-			for (Person person : persons) {
-				System.out.println(person.getLightNumber() + ": " + person.getName());
-			}
-			checkInput.start();
-			checkTime.start();
-		} catch (HueBridgeException e) {
-			System.out.println("An error ocoured in the connection to the HUE-Bridge!\r\n" + e.getMessage());
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
+		} catch (DistanceServiceException e) {
+			e.printStackTrace();
 		}
+		
+		System.out.println("==================================");
+		System.out.println("Enter number for persons (the light) who started off.");
+		for (Person person : persons) {
+			System.out.println(person.getLightNumber() + ": " + person.getName());
+		}
+		checkInput.start();
+		checkTime.start();
 		
 	}
 	
@@ -65,7 +70,7 @@ public class BreakfastToTheLimit {
 	 * @throws HueBridgeException Thrown if an error occurs in the connection to the Hue Bridge.
 	 * @throws IOException Thrown if error occurs in the connection to the command line.
 	 */
-	private static Person[] requestDataForPersons() throws HueBridgeException, IOException {
+	private static Person[] requestDataForPersons() throws IOException {
 		Person[] persons = new Person[NUMBEROFPERSONS];
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		System.out.println("Welcome to Breakfast to the Limit");
@@ -155,17 +160,18 @@ public class BreakfastToTheLimit {
 					if (hasEveryOneStartedOff())
 						this.interrupt();
 					
-				}
-				catch (NumberFormatException e) {
-					System.out.println("Unvalid Number");
+				} catch (NumberFormatException e) {
+					System.out.println("Invalid Number! Please enter a number of a person!");
 				} catch (HueBridgeException e) {
 					// If an error occurs in the connection to Hue Bridge show error message and close program
-					System.out.println("An error ocoured in the connection to the HUE-Bridge!\r\n" + e.getMessage());
+					System.out.println(e.getMessage());
 					this.interrupt();
 					checkTime.interrupt();
 				} catch (IOException e) {
 					// If an io error occurs show error message and close program
+					System.out.println("An error occured while reading from commandline!");
 					System.out.println(e.getMessage());
+					System.out.println("The application will be closed");
 					this.interrupt();
 					checkTime.interrupt();
 				}
@@ -215,7 +221,7 @@ public class BreakfastToTheLimit {
 			}
 			catch (HueBridgeException e) {
 				// If an error occurs in the connection to Hue Bridge show error message and close program
-				System.out.println("An error ocoured in the connection to the HUE-Bridge!\r\n" + e.getMessage());
+				System.out.println(e.getMessage());
 				this.interrupt();
 				checkInput.interrupt();
 			}
