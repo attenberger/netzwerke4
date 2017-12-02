@@ -147,7 +147,7 @@ public class Person {
 				long duration = GoogleDistanceService.fetch(placeOfResidence, placeOfWork, transportation).getDuration();
 				return timeClockIn.toSecondOfDay() - LocalTime.now().toSecondOfDay() - duration;
 			} catch (DistanceServiceException e) {
-				e.printStackTrace();
+				System.err.println("Konnte verbleibende Zeit für " + getName() + " nicht berechnen.");
 			}
 		}
 

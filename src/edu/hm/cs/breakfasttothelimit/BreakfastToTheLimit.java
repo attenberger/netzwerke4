@@ -51,7 +51,7 @@ public class BreakfastToTheLimit {
 			persons[1] = new Person("Wolfgang", 2, PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Lothstr. 34, 80335 München", Transportation.FOOT).getDuration() + 150), Transportation.FOOT, huebridge);
 			persons[2] = new Person("Andrea", 3, PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", LocalTime.now().plusSeconds(GoogleDistanceService.fetch(PLACEOFRESIDENCE, "Boltzmannstraße 1, 85748 Garching bei München", Transportation.CAR).getDuration() + 160), Transportation.CAR, huebridge);
 		} catch (DistanceServiceException e) {
-			e.printStackTrace();
+			System.err.println("Could not get duration of commutes.");
 		}
 		
 		System.out.println("==================================");
@@ -61,7 +61,6 @@ public class BreakfastToTheLimit {
 		}
 		checkInput.start();
 		checkTime.start();
-		
 	}
 	
 	/**
